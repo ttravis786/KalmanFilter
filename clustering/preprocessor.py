@@ -9,8 +9,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import time
 from Seeding.linear_regression import linear_regression, linear_func
-sys.path.append(r'\\wsl$\Ubuntu\home\tt1020\CombinedSim\DetectorSim')
-from Detector import Detector
+
 class PreProcesser():
 
     def __init__(self, df):
@@ -51,8 +50,8 @@ class PreProcesser():
             for nn_group in nn_groups.values():
                 central_point = ((nn_group.activation.dot(nn_group[['panel_x',  'panel_y']]))) / nn_group.activation.sum()
                 error = 1 / np.sqrt(len(nn_group))
-                data_dict['x'].append(central_point[0])
-                data_dict['y'].append(central_point[1])
+                data_dict['x'].append(central_point['panel_x'])
+                data_dict['y'].append(central_point['panel_y'])
                 data_dict['error'].append(error)
                 data_dict['time'].append(nn_group['time'].mean())
 
@@ -77,38 +76,44 @@ class PreProcesser():
         # looks at next highest activation
         # firstly filter by time.
         # sum activation
+custom = True
+if custom:
+    sys.path.append(r'\\wsl$\Ubuntu\home\tt1020\CombinedSim')
+    sys.path.append(r'\\wsl$\Ubuntu\home\tt1020\CombinedSim\DetectorSim')
+    sys.path.append(r'\\wsl$\Ubuntu\home\tt1020\CombinedSim\TrackSim')
+    import combinedsim
+    output, detector = combinedsim.run_sim({'muon':1}, 0.5, 0.5)
+    df = output['detector']
+    df.time = df.time * 1e9
+    df = df.sort_values(by='time')
+    df = df[df.time <= 25]
 
-import pickle
-with open('test_data\detector.pickle', 'rb') as handle:
-    detector = pickle.load(handle)
+if __name__ == "__main__":
 
-df = pd.read_csv(r'test_data/test.csv')
-#del df['Unnamed: 0']
-df.time = df.time * 1e9
-df = df.sort_values(by='time')
-# find cycle
-df = df[df.time <=25]
-preprocessor = PreProcesser(df)
-a = time.time()
-# for i in range(0,30):
-#     preprocessed_data = preprocessor.geometric_cluster(t_step=1, cut_off=0.6, dist=0.6)
-# print(time.time() - a)
-fig, ax = plt.subplots()
-#ax.plot(df.real_x,df.real_y, 'o')
-# preprocessed_data = preprocessor.geometric_cluster(t_step=0.1, cut_off=1.0, dist=0.6, merge=True)
-# ax.plot(preprocessed_data.x,preprocessed_data.y, '.')
-ax.plot(df.real_x,df.real_y, '.')
-preprocessed_data = preprocessor.geometric_cluster(t_step=0.3, cut_off=0.7, dist=0.6, merge=True)
-ax.plot(preprocessed_data.x, preprocessed_data.y, 'x')
-detector = Detector()
-detector.plot_output_data(fig_ax=(fig,ax), df=df)
+    #df = pd.read_csv(r'test_data/one_muon_sigmoid1.csv')
+    #del df['Unnamed: 0']
 
-x, y = np.array(preprocessed_data.x), np.array(preprocessed_data.y)
+    # find cycle
+    preprocessor = PreProcesser(df)
+    a = time.time()
+    # for i in range(0,30):
+    #     preprocessed_data = preprocessor.geometric_cluster(t_step=1, cut_off=0.6, dist=0.6)
+    # print(time.time() - a)
+    fig, ax = plt.subplots()
+    #ax.plot(df.real_x,df.real_y, 'o')
+    # preprocessed_data = preprocessor.geometric_cluster(t_step=0.1, cut_off=1.0, dist=0.6, merge=True)
+    # ax.plot(preprocessed_data.x,preprocessed_data.y, '.')
+    ax.plot(df.real_x,df.real_y, '.')
+    preprocessed_data = preprocessor.geometric_cluster(t_step=0.3, cut_off=0.7, dist=0.6, merge=True)
+    ax.plot(preprocessed_data.x, preprocessed_data.y, 'x')
+    detector.plot_output_data(fig_ax=(fig,ax), df=df)
 
-points = np.array([x,y]).T
+    x, y = np.array(preprocessed_data.x), np.array(preprocessed_data.y)
 
-B, B_cov_mat, var = linear_regression(points=points)
-x_fit = np.linspace(-27, 27, 1000)
-y_fit = linear_func(x_fit, params=B)
+    points = np.array([x,y]).T
 
-plt.plot(x_fit, y_fit)
+    B, B_cov_mat, var = linear_regression(points=points[0:18:4], order=2)
+    x_fit = np.linspace(-27, 27, 1000)
+    y_fit = linear_func(x_fit, B)
+
+    plt.plot(x_fit, y_fit)
