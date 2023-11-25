@@ -27,7 +27,7 @@ def linear_regression(points=np.array([[1.04,1.1], [2,2.09,], [3, 3.11]]), order
     N = len(Y)
     p = order + 1
     res = Y - X.dot(B)
-    var = (1 / (N - p)) * np.sum(res**2)
+    var = (1 / (N - p+1)) * np.sum(res**2)
     B_cov_mat = var * np.linalg.inv(np.matmul(X.T, X))
     return B, B_cov_mat, var
 

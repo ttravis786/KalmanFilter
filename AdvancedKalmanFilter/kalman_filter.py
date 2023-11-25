@@ -55,13 +55,12 @@ class Kalman_Filter():
         self.P = np.matmul((np.identity(self.order+1) - np.matmul(K, H)),
                            P_k_km1)
         y_k_k = y_cord - np.matmul(H, self.X)
+        return self.X, self.P, y_k_k
 
     def add_points(self, x, y):
         for x, y in zip(x, y):
             self.update(x, y)
         return self.X, self.P
-
-
 
 
 
