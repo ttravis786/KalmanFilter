@@ -130,9 +130,9 @@ class CKF():
 
     def _process_quintet(self, points, curr_cell, prev_cell, points_map):
         points_arr = np.array(points)
-        # compute linear regression.
+        # compute linear rstegression.
         B, B_cov_mat, var = linear_regression.linear_regression(points=points_arr, order=self.fit_order)
-        # test params of quintet to see if it works? i.e charge_momentum etc
+        # test params of quintet to see if it works? i.e charge_momentum etc.
         # initiate kalman filter
         master_branch = CKF_branch(B, B_cov_mat, curr_cell, prev_cell, points, len(points), self)
         master_branch.propogate(self.max_range, points_map, self.max_res)

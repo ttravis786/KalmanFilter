@@ -14,7 +14,7 @@ class PreProcesser():
 
     def __init__(self, df):
         self.original_df = df.sort_values(['time'])
-    def geometric_cluster(self, t_step=2, cut_off=0.8, dist=0.6, merge = True):
+    def geometric_cluster(self, t_step=2, cut_off=0.8, dist=0.6, merge = True, grouper='activation'):
         df_n = self.original_df.copy()
         bins = np.arange(df_n.time.min(), df_n.time.max(), t_step)
         group_by = df_n.groupby(pd.cut(df_n.time, bins))
@@ -22,9 +22,9 @@ class PreProcesser():
         # look for 3*3
         data_dict = {'x':[], 'y':[], 'error':[], 'time':[]}
         for name, group in group_by:
-            group = group.sort_values(['activation'], ascending=False)
-            bool_arr = group.activation > cut_off
-            activation_data = zip(group.activation[bool_arr],
+            group = group.sort_values([grouper], ascending=False)
+            bool_arr = group[grouper] > cut_off
+            activation_data = zip(group.loc[bool_arr, grouper],
                                 group.panel_x[bool_arr],
                                 group.panel_y[bool_arr])
             nn_groups = {}
@@ -34,21 +34,21 @@ class PreProcesser():
                     continue
                 nn_group = group[((group.panel_x >= x - dist) & (group.panel_x <= x + dist)
                             & (group.panel_y >= y - dist) & (group.panel_y <= y + dist))]
-                nn_group_act_max = nn_group.activation.max()
+                nn_group_act_max = nn_group[grouper].max()
                 if nn_group_act_max == activation:
-                    activations_checked += list(nn_group.activation)
+                    activations_checked += list(nn_group[grouper])
                     nn_groups[activation] = nn_group
                 else:
-                    activations_checked += list(nn_group.activation)
+                    activations_checked += list(nn_group[grouper])
                     if merge:
                         for group_name, group in nn_groups.items():
-                            if (group.activation == nn_group_act_max).sum():
+                            if (group[grouper] == nn_group_act_max).sum():
                                 nn_groups[group_name] = pd.merge(group, nn_group, how='outer')
                     else:
                         nn_groups[activation] = nn_group
 
             for nn_group in nn_groups.values():
-                central_point = ((nn_group.activation.dot(nn_group[['panel_x',  'panel_y']]))) / nn_group.activation.sum()
+                central_point = ((nn_group[grouper].dot(nn_group[['panel_x',  'panel_y']]))) / nn_group[grouper].sum()
                 error = 1 / np.sqrt(len(nn_group))
                 data_dict['x'].append(central_point['panel_x'])
                 data_dict['y'].append(central_point['panel_y'])

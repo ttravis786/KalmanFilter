@@ -13,7 +13,7 @@ sys.path.append(r'\\wsl$\Ubuntu\home\tt1020\CombinedSim\DetectorSim')
 sys.path.append(r'\\wsl$\Ubuntu\home\tt1020\CombinedSim\TrackSim')
 import combinedsim
 
-if True:
+if False:
        # Get data
        output, detector = combinedsim.run_sim({'muon': 5}, 0.5, 0.5)
        df = output['detector']
@@ -30,9 +30,14 @@ if True:
        #detector.plot_output_data(fig_ax=(fig, ax), df=df)
        x, y = np.array(preprocessed_data.x), np.array(preprocessed_data.y)
        points = np.array([x, y]).T
+
+if True:
+       location = r"\\wsl$\Ubuntu\home\tt1020\CPPKalmanFilter\cplusdemo\cmake-build-debug"
+       filename = "threeTracks.csv"
+       df = pd.read_csv(rf"{location}\{filename}")
+       points = np.array([list(df.x), list(df.y)]).T
 # really don't work
 if False:
-
        points = np.array([[ 2.65442487e+01,  3.26946935e+00],
        [ 2.64988847e+01,  1.52809248e+00],
        [ 2.55012913e+01,  3.19707424e+00],
@@ -665,9 +670,10 @@ def strip_creator(radius=27, n_of_points=4, width=3, late_start=6):
 
 fig, ax = plt.subplots()
 plt.plot(points[:, 0], points[:, 1], 'x', label='all points')
-strips = strip_creator()
+#strips = strip_creator()
+strips = [[(25,28), (-7,7)]]
 B_n_arr = []
-for max_it in [25]:
+for max_it in [1000]:
        a = time.time()
        fig, ax = plt.subplots()
        for strip in strips:

@@ -100,7 +100,7 @@ class CKF_branch():
         P = np.matmul((np.identity(self.ckf.fit_order+1) - np.matmul(K, H)),
                            P_k_km1)
         y_k_k = abs(y_cord - np.matmul(H, X))
-        return X, P, y_k_k
+        return X, P, y_k
 
     def propogate(self, max_range, points_map, max_res, try_all=False):
         if self.iteration > self.ckf.max_iteration:
@@ -137,7 +137,9 @@ class CKF_branch():
                             continue
                         #print(res[0])
                         #print(self.resid_func(max_res, next_point[0]))
-                        if abs(res[0]) < self.resid_func(max_res, next_point[0]):
+                        max_res_n = self.resid_func(max_res, next_point[0])
+                        print(max_res_n)
+                        if abs(res[0]) < max_res_n:
                             possible_next_points.append((X, P, next_point, cell))
                 if len(possible_next_points) == 1:
                     X, P, next_point, cell = possible_next_points[0]
@@ -149,7 +151,7 @@ class CKF_branch():
                     #del points_map_n[cell]
                     self.points.append(next_point)
                     self.total_points += 1
-                    self.iteration += 1
+                    #self.iteration += 1
                     self.propogate(max_range, points_map, max_res)
                     return
                     # branch
